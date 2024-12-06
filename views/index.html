@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Form Tree</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <div class="container mx-auto px-4 py-8 flex-grow flex flex-col">
+        <h2 class="text-xl font-bold mb-4">Dynamic Nested Form</h2>
+        <div id="formContainer" class="flex-grow flex flex-col border rounded overflow-hidden">
+            <div id="formContent" class="flex-grow overflow-auto">
+                <!-- Dynamic form will be generated here -->
+            </div>
+        </div>
+        <button id="submitButton" class="mt-4 bg-blue-500 text-white p-2 rounded self-start">
+            Submit Form
+        </button>
+    </div>
+
+    <script>
+        class DynamicFormTree {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                this.formTree = [this.createNode()];
+                this.render();
+                this.attachEventListeners();
+            }
+
+            createNode(label = '', value = '') {
+                return {
+                    id: Math.floor(Math.random() * 10000),
+                    label,
+                    value,
+                    children: []
+                };
+            }
+
+            addChildNode(parentId) {
+                const addChildRecursively = (nodes) => {
+                    return nodes.map(node => {
+                        if (node.id === parentId) {
+                            node.children.push(this.createNode());
+                        }
+                        if (node.children.length > 0) {
+                            node.children = addChildRecursively(node.children);
+                        }
+                        return node;
+                    });
+                };
+
+                this.formTree = addChildRecursively(this.formTree);
+                this.render();
+            }
+
+            removeNode(nodeId) {
+                const removeNodeRecursively = (nodes) => {
+                    return nodes.filter(node => {
+                        if (node.children.length > 0) {
+                            node.children = removeNodeRecursively(node.children);
+                        }
+                        return node.id !== nodeId;
+                    });
+                };
+
+                this.formTree = removeNodeRecursively(this.formTree);
+                this.render();
+            }
+
+            updateNode(nodeId, field, value) {
+                const updateNodeRecursively = (nodes) => {
+                    return nodes.map(node => {
+                        if (node.id === nodeId) {
+                            node[field] = value;
+                        }
+                        if (node.children.length > 0) {
+                            node.children = updateNodeRecursively(node.children);
+                        }
+                        return node;
+                    });
+                };
+
+                this.formTree = updateNodeRecursively(this.formTree);
+            }
+
+            renderFormTree(nodes, level = 0) {
+                return nodes.map(node => `
+                    <div class="flex items-center space-x-2 my-2 pl-${level * 4} w-full">
+                        <div class="flex-grow flex items-center space-x-2">
+                            <input
+                                type="text"
+                                placeholder="Label"
+                                value="${node.label}"
+                                data-id="${node.id}"
+                                data-field="label"
+                                class="border p-1 rounded w-1/2 min-w-[100px] max-w-[300px] label-input"
+                            />
+                            <input
+                                type="text"
+                                placeholder="Value"
+                                value="${node.value}"
+                                data-id="${node.id}"
+                                data-field="value"
+                                class="border p-1 rounded w-1/2 min-w-[100px] max-w-[300px] value-input"
+                            />
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button 
+                                data-id="${node.id}"
+                                class="bg-green-500 text-white p-1 rounded add-child-btn min-w-[30px]"
+                            >
+                                +
+                            </button>
+                            ${level > 0 ? `
+                                <button 
+                                    data-id="${node.id}"
+                                    class="bg-red-500 text-white p-1 rounded remove-node-btn min-w-[30px]"
+                                >
+                                    -
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ${node.children.length > 0 ? `
+                        <div class="ml-4">
+                            ${this.renderFormTree(node.children, level + 1)}
+                        </div>
+                    ` : ''}
+                `).join('');
+            }
+
+            render() {
+                const formContent = document.getElementById('formContent');
+                formContent.innerHTML = this.renderFormTree(this.formTree);
+                this.attachEventListeners();
+            }
+
+            attachEventListeners() {
+                document.querySelectorAll('.add-child-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const nodeId = parseInt(e.target.dataset.id);
+                        this.addChildNode(nodeId);
+                    });
+                });
+
+                document.querySelectorAll('.remove-node-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const nodeId = parseInt(e.target.dataset.id);
+                        this.removeNode(nodeId);
+                    });
+                });
+
+                document.querySelectorAll('.label-input, .value-input').forEach(input => {
+                    input.addEventListener('input', (e) => {
+                        const nodeId = parseInt(e.target.dataset.id);
+                        const field = e.target.dataset.field;
+                        this.updateNode(nodeId, field, e.target.value);
+                    });
+                });
+            }
+        }
+
+        // Initialize the dynamic form
+        const dynamicForm = new DynamicFormTree('formContent');
+
+        // Submit button event
+        document.getElementById('submitButton').addEventListener('click', () => {
+            console.log('Form Tree Data:', JSON.stringify(dynamicForm.formTree, null, 2));
+        });
+    </script>
+</body>
+</html>

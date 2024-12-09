@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Diagram Visualization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tree-node {
+            position: relative;
+        }
+        .tree-node::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            width: 1px;
+            height: 10px;
+            background-color: #333;
+        }
+        .tree-node-children {
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        .tree-node-children::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            width: 1px;
+            height: 10px;
+            background-color: #333;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="container mx-auto">
+        <h2 class="text-2xl font-bold mb-6 text-center">Tree Diagram Visualization</h2>
+        <div id="treeDiagram" class="bg-white shadow-lg rounded-lg p-6">
+            <!-- Tree diagram will be rendered here -->
+        </div>
+        <div class="flex justify-center mt-4">
+            <a href="dynamic-form.html" class="bg-blue-500 text-white p-2 rounded">
+                Back to Form
+            </a>
+        </div>
+    </div>
+
+    <script>
+        class TreeDiagram {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                this.formTreeData = JSON.parse(localStorage.getItem('formTreeData') || '[]');
+                this.render();
+            }
+
+            createNodeElement(node, level = 0) {
+                // Create node element
+                const nodeElement = document.createElement('div');
+                nodeElement.className = `tree-node flex flex-col items-center mb-4 pl-${level * 4}`;
+
+                // Create node content
+                const nodeContent = document.createElement('div');
+                nodeContent.className = 'bg-blue-100 p-2 rounded shadow-md text-center min-w-[150px]';
+                nodeContent.innerHTML = `
+                    <strong>Label:</strong> ${node.label || 'N/A'}<br>
+                    <strong>Value:</strong> ${node.value || 'N/A'}
+                `;
+                nodeElement.appendChild(nodeContent);
+
+                // Create children container
+                if (node.children && node.children.length > 0) {
+                    const childrenContainer = document.createElement('div');
+                    childrenContainer.className = 'tree-node-children flex justify-center mt-4';
+
+                    // Render child nodes
+                    node.children.forEach(childNode => {
+                        const childElement = this.createNodeElement(childNode, level + 1);
+                        childrenContainer.appendChild(childElement);
+                    });
+
+                    nodeElement.appendChild(childrenContainer);
+                }
+
+                return nodeElement;
+            }
+
+            render() {
+                // Clear previous content
+                this.container.innerHTML = '';
+
+                // Render each root-level node
+                this.formTreeData.forEach(node => {
+                    const nodeElement = this.createNodeElement(node);
+                    this.container.appendChild(nodeElement);
+                });
+            }
+        }
+
+        // Initialize and render the tree diagram
+        document.addEventListener('DOMContentLoaded', () => {
+            new TreeDiagram('treeDiagram');
+        });
+    </script>
+</body>
+</html>

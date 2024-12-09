@@ -13,6 +13,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
+app.get('/tree', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'tree.html'));
+});
+
+
 
 
 app.listen(PORT, () => {

@@ -23,6 +23,10 @@
         class DynamicFormTree {
             constructor(containerId) {
                 this.container = document.getElementById(containerId);
+                const savedFormTree = localStorage.getItem('formTreeData');
+                this.formTree = savedFormTree 
+                    ? JSON.parse(savedFormTree) 
+                    : [this.createNode()];
                 this.formTree = [this.createNode()];
                 this.render();
                 this.attachEventListeners();
@@ -82,6 +86,11 @@
                 };
 
                 this.formTree = updateNodeRecursively(this.formTree);
+            }
+
+            saveToLocalStorage() {
+                localStorage.setItem('formTreeData', JSON.stringify(this.formTree));
+                alert('Form data saved successfully!');
             }
 
             renderFormTree(nodes, level = 0) {
@@ -167,6 +176,7 @@
         // Submit button event
         document.getElementById('submitButton').addEventListener('click', () => {
             console.log('Form Tree Data:', JSON.stringify(dynamicForm.formTree, null, 2));
+            dynamicForm.saveToLocalStorage();
         });
     </script>
 </body>
